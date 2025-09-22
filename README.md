@@ -82,3 +82,49 @@ It is published to establish prior art and to timestamp the invention’s scope 
 ---
 
 © 2025. All rights reserved.
+
+thumbsup/
+├── thumbs-contracts/
+│   ├── contracts/ThumbsToken.sol
+│   ├── scripts/deploy.ts
+│   ├── hardhat.config.ts
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── .env.example
+│   └── README.md
+├── thumbs-backend/
+│   ├── prisma/schema.prisma
+│   ├── src/main.ts
+│   ├── src/app.module.ts
+│   ├── src/prisma.service.ts
+│   ├── src/wallet/wallet.controller.ts
+│   ├── src/wallet/wallet.service.ts
+│   ├── src/incentives/incentives.service.ts
+│   ├── src/campaigns/campaigns.module.ts
+│   ├── src/incentives/incentives.module.ts
+│   ├── src/wallet/wallet.module.ts
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── .env.example
+│   └── README.md
+├── thumbs-web/
+│   ├── app/providers.tsx
+│   ├── app/wallet/page.tsx
+│   ├── pages/api/wallet/balance.ts
+│   ├── pages/api/wallet/transactions.ts
+│   ├── next.config.js
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── .env.example
+│   └── README.md
+├── thumbs-mobile/
+│   ├── App.tsx
+│   ├── app/WalletScreen.tsx
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── app.json
+│   ├── .env.example
+│   └── README.md
+├── .gitignore
+├── docker-compose.yml
+└── README.md
