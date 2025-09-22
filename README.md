@@ -128,3 +128,136 @@ thumbsup/
 ├── .gitignore
 ├── docker-compose.yml
 └── README.md
+
+{
+  "name": "thumbs-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.5",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2"
+  }
+}
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "types": ["hardhat"]
+  },
+  "include": ["./scripts", "./test", "./typechain-types", "./hardhat.config.ts"]
+}
+ALCHEMY_RPC=https://eth-sepolia.g.alchemy.com/v2/replace_me
+DEPLOYER_PK=0xreplace_me_private_key
+TREASURY_ADDR=0xReplaceTreasury
+ADMIN_ADDR=0xReplaceAdmin
+ETHERSCAN_KEY=replace_me
+import { config as dot } from "dotenv";
+dot();
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
+
+const config: HardhatUserConfig = {
+  solidity: "0.8.24",
+  networks: {
+    sepolia: {
+      url: process.env.ALCHEMY_RPC || "",
+      accounts: process.env.DEPLOYER_PK ? [process.env.DEPLOYER_PK] : []
+    }
+  },
+  etherscan: { apiKey: process.env.ETHERSCAN_KEY || "" }
+};
+
+export default config;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
+contract ThumbsToken is ERC20Permit, ERC20Pausable, AccessControl {
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    uint256 public immutable MAX_SUPPLY;
+    address public immutable treasury;
+
+    event IncentiveMint(address indexed to, uint256 amount, bytes32 indexed reason);
+    event TreasuryFunded(address indexed treasury, uint256 amount);
+
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint256 maxSupply_,
+        address treasury_,
+        address admin_
+    ) ERC20(name_, symbol_) ERC20Permit(name_) {
+        require(treasury_ != address(0) && admin_ != address(0), "bad addr");
+        _grantRole(DEFAULT_ADMIN_ROLE, admin_);
+        _grantRole(PAUSER_ROLE, admin_);
+        _grantRole(MINTER_ROLE, admin_);
+        MAX_SUPPLY = maxSupply_;
+        treasury = treasury_;
+    }
+
+    function pause() external onlyRole(PAUSER_ROLE) { _pause(); }
+    function unpause() external onlyRole(PAUSER_ROLE) { _unpause(); }
+
+    function mint(address to, uint256 amount, bytes32 reason) external onlyRole(MINTER_ROLE) {
+        require(totalSupply() + amount <= MAX_SUPPLY, "cap");
+        _mint(to, amount);
+        emit IncentiveMint(to, amount, reason);
+    }
+
+    function fundTreasury(uint256 amount) external onlyRole(MINTER_ROLE) {
+        require(totalSupply() + amount <= MAX_SUPPLY, "cap");
+        _mint(treasury, amount);
+        emit TreasuryFunded(treasury, amount);
+    }
+
+    function _update(address from, address to, uint256 value)
+        internal
+        override(ERC20, ERC20Pausable)
+    {
+        super._update(from, to, value);
+    }
+}
+import { ethers } from "hardhat";
+
+async function main() {
+  const [deployer] = await ethers.getSigners();
+  const name = "Thumbs Token";
+  const symbol = "THUMBS";
+  const maxSupply = ethers.parseUnits("100000000", 18); // 100M
+  const treasury = process.env.TREASURY_ADDR!;
+  const admin = process.env.ADMIN_ADDR || deployer.address;
+
+  const Token = await ethers.getContractFactory("ThumbsToken");
+  const token = await Token.deploy(name, symbol, maxSupply, treasury, admin);
+  await token.waitForDeployment();
+
+  console.log("ThumbsToken deployed to:", await token.getAddress());
+  console.log("Admin:", admin);
+  console.log("Treasury:", treasury);
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });
+# Thumbs Contracts
+
+- Copy .env.example to .env and fill values.
+- Compile: `npm run compile`
+- Deploy to Sepolia: `npm run deploy:sepolia`
