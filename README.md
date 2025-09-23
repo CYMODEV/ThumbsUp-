@@ -885,3 +885,47 @@ volumes:
 3) Web
 
 4) Mobile
+import { Controller, Post, Body } from '@nestjs/common';
+import { IncentivesService } from './incentives.service';
+
+@Controller('thumbs')
+export class IncentivesController {
+  constructor(private readonly svc: IncentivesService) {}
+
+  @Post('event')
+  async handleEvent(
+    @Body() dto: { userId: string; action: string; meta?: any }
+  ) {
+    // Example: { userId: "abc123", action: "THUMBS_UP", meta: { partnerSite: "partner.com", contentId: "xyz789" } }
+    return this.svc.reward(dto.userId, dto.action, dto.meta);
+  }
+}
+import { Module } from '@nestjs/common';
+import { IncentivesService } from './incentives.service';
+import { IncentivesController } from './incentives.controller';
+import { PrismaService } from '../prisma.service';
+
+@Module({
+  controllers: [IncentivesController],
+  providers: [IncentivesService, PrismaService],
+})
+export class IncentivesModule {}
+<script>
+  (function() {
+    window.thumbsUp = {
+      event: function(map) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://your-backend.com/thumbs/event", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify(map));
+      }
+    };
+  })();
+</script>
+<button onclick="thumbsUp.event({
+  userId: 'abc123',
+  action: 'THUMBS_UP',
+  meta: { partnerSite: 'partner.com', contentId: 'xyz789' }
+})">
+  👍 ThumbsUp
+</button>
