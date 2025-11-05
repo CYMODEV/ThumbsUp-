@@ -136,3 +136,4 @@ We are raising a **$5M seed round** to accelerate development and adoption:
 ##  License & Disclosure
 This repository serves as a **public disclosure** of the ThumbsUp platform, its payment technology, and market opportunity. It establishes prior art for the described inventions. Patent applications are prepared. All code, diagrams, and documents herein are released under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0) unless otherwise noted.
 
+This disclosure provides a system and method for securely tokenizing thumbs‑up engagement events, provisioning and protecting user tokens via a biometric ThumbDrive hardware device, enabling low‑friction redemption via chip/RF/IR POS interfaces and mobile wallets, and establishing cryptographic attestation and anti‑fraud patterns for trusted issuance and settlement. Implementation variations, enhancements, and optimizations are possible within the scope of the inventive concepts described herein.
